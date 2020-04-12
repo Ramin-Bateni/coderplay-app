@@ -2,19 +2,20 @@
 	<div class="cp-assets-table">
 		<v-toolbar flat>
 			<v-toolbar-title>
-				<v-icon class="mr-0">video_library</v-icon>Assets
+				<v-icon class="mr-2">video_library</v-icon>Assets
 			</v-toolbar-title>
 
 			<v-divider class="mx-2" inset vertical></v-divider>
 
 			<v-spacer></v-spacer>
-
 			<v-dialog v-model="dialog" max-width="500px">
 				<template v-slot:activator="{ on }">
-					<v-btn fab small color="#4a4a4a">
-						<v-icon>add</v-icon>
-					</v-btn>
-					<v-btn fab small color="#de112e">REC</v-btn>
+					<div v-if="currentReference">
+						<v-btn fab small color="#4a4a4a">
+							<v-icon>add</v-icon>
+						</v-btn>
+						<v-btn fab small color="#de112e">REC</v-btn>
+					</div>
 					<!-- <button type="button" class="v-btn v-btn--flat v-btn--icon theme--light pink--text">
               <div class="v-btn__content">
                 <i aria-hidden="true" class="v-icon material-icons theme--light">camera</i>
@@ -88,15 +89,29 @@
 				</tr>
 			</template>
 			<template v-slot:no-data>
-				<!-- <v-btn color="primary" @click="initialize">Reset</v-btn> -->
-				There is no assets to list
+				<td class="px-0">
+					<v-card class="px-2" flat full-width v-if="currentReference">
+						<v-card-text>
+							The selected reference has no assets yet!
+							<br />To add an asset here please use the
+							<v-btn fab small color="#4a4a4a">
+								<v-icon>add</v-icon>
+							</v-btn>or
+							<v-btn fab small color="#de112e">REC</v-btn>buttons.
+						</v-card-text>
+					</v-card>
+					<v-card flat full-width v-else>
+						<v-card-text>Please select a reference from the Project Tree in the sidebar to show its assets here.</v-card-text>
+					</v-card>
+					<!-- <v-btn color="primary" @click="initialize">Reset</v-btn> -->
+				</td>
 			</template>
 			<template v-slot:expand="props">
 				<v-card flat>
 					<v-card-text>{{props.item}}</v-card-text>
 				</v-card>
 			</template>
-			<template v-if="true">aaaaaaaaa</template>
+			<!-- <template v-if="true">aaaaaaaaa</template> -->
 		</v-data-table>
 	</div>
 </template>
@@ -104,14 +119,15 @@
 <script lang="ts">
 	import Vue from 'vue';
 	import t from '../store/types';
-	import { IAsset, ILoadedSolution, ISolution } from './CoderplaySolutionTypes';
+	import { Utility } from '../utility';
+	import {
+		IAssetItem,
+		ILoadedSolution,
+		IReference,
+		ISolution,
+	} from './CoderplaySolutionTypes';
 
 	export default Vue.extend({
-		created() {
-			// debugger;
-			// // this.initialize(this.solution);
-			// console.log(t.solution.GetterTypes.currentSolution);
-		},
 		data: () => ({
 			expand: null,
 			dialog: false,
@@ -143,6 +159,13 @@
 		}),
 
 		computed: {
+			currentReference(): IReference {
+				// debugger;
+				const ref = this.$store.getters[
+					t.solution.GetterTypes.currentReference
+				];
+				return ref;
+			},
 			formTitle(): any {
 				return this.editedIndex === -1 ? 'New Item' : 'Edit Item';
 			},
@@ -155,23 +178,22 @@
 				return sol;
 			},
 			desserts(): any[] {
-				// debugger;
-				const ref = this.solution.projects[0].references[0];
 				const desserts: any[] = [];
-				ref.assets.forEach((asset: IAsset) => {
-					desserts.push({
-						id: asset.id,
-						icon:
-							asset.file.type === 'video'
-								? 'local_movies'
-								: 'audio'
-								? 'music_note'
-								: 'insert_drive_file',
-						title: asset.title,
-						description: asset.desc,
-						file: asset.file,
+				const ref = this.currentReference;
+				if (ref) {
+					ref.assetItems.forEach((assetItem: IAssetItem) => {
+						const asset = assetItem.asset();
+						const item = {
+							id: assetItem.id,
+							icon: Utility.GetIconClassFromFileType(asset.file.type),
+							title: asset.title,
+							description: asset.desc,
+							file: asset.file,
+						};
+						console.log('item', item);
+						desserts.push(item);
 					});
-				});
+				}
 				return desserts;
 			},
 		},
@@ -276,7 +298,10 @@
 				// debugger;
 				const assetId = item.id;
 				// debugger
-				this.$store.dispatch(t.solution.ActionTypes.selectAsset, assetId);
+				this.$store.dispatch(
+					t.solution.ActionTypes.selectAssetItem,
+					assetId
+				);
 				// let xxxxx = this.$store.getters.currentAsset;
 				//  editedIndex = this.desserts.indexOf(item)
 				// this.editedItem = Object.assign({}, item)

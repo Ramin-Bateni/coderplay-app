@@ -1,31 +1,14 @@
 import {
-    appConfigStore,
-    Defaults,
-    IAppConf,
-    ReadyAppConfig,
-} from '@/appConfig';
-import {
-    IAsset,
     IAssetFlow,
+    IAssetItem,
     ILoadedSolution,
-    IPrimaryDrawer,
     IProject,
-    IProjectFlow,
     IReference,
-    IReferenceFlow,
-    IResourceFlow,
-    ISettings,
     ISolution,
-    ISolutionFlow,
-    ISolutionMeta,
 } from '@/components/CoderplaySolutionTypes';
 import fs from 'fs';
-import { ActionContext, MutationTree } from 'vuex';
-import { IRootState } from '../types';
+import { MutationTree } from 'vuex';
 import SolutionState from './state';
-import * as types from './types';
-// tslint:disable-next-line: no-var-requires
-const uuidV4 = require('uuid/v4');
 
 const mutations: MutationTree<typeof SolutionState> = {
     openSolution: (state, loadedSolution: ILoadedSolution) => {
@@ -57,7 +40,7 @@ const mutations: MutationTree<typeof SolutionState> = {
         // if the solution is modified then we save the changes to its file
         // before remove it from the solution list
         if (solution.meta.isModified) {
-            fs.writeFile(solution.meta.filePath, solution as ISolution, err => {
+            fs.writeFile(solution.meta.filePath, solution as ISolution, () => {
                 alert('Error is saving the solution!');
             });
         }
@@ -70,15 +53,38 @@ const mutations: MutationTree<typeof SolutionState> = {
         state.solutions.splice(solutionIndex, 1);
     },
 
-    deselectAsset: (state, path) => {
-        const asset = findAsset(state, path);
+    deselectAssetItemByPath: (state, path) => {
+        // console.log('mutation > deselectAssetItem', state);
+        // console.log('mutation > deselectAssetItem', path);
+        const asset = findAssetItem(state, path);
         asset.isSelected = false;
     },
-
-    selectAsset: (state, path) => {
-        const asset = findAsset(state, path);
-        asset.isSelected = true;
+    deselectAssetItem: (state, assetItem) => {
+        if (assetItem) {
+            assetItem.isSelected = false;
+        }
     },
+
+    deselectProject: (state, proj) => {
+        if (proj) {
+            proj.isSelected = false;
+        }
+    },
+
+    deselectReference: (state, ref) => {
+        if (ref) {
+            ref.isSelected = false;
+        }
+    },
+
+    selectAssetItem: (state, path) => {
+        // console.log('mutation > selectAssetItem', state);
+        // console.log('mutation > selectAssetItem', path);
+        const assetItem = findAssetItem(state, path);
+        assetItem.isSelected = true;
+        // console.log(state);
+    },
+
     selectReference: (state, path) => {
         const ref = ((state.solutions.find(
             (i: ILoadedSolution) => i.meta.loadId === path.solution.meta.loadId
@@ -87,7 +93,8 @@ const mutations: MutationTree<typeof SolutionState> = {
         ) as IProject).references.find(
             i => i.id === path.reference.id
         ) as IReference;
-
+        // console.log('mutation > selectReference', path);
+        // console.log(ref);
         ref.isSelected = true;
     },
 
@@ -109,16 +116,24 @@ const mutations: MutationTree<typeof SolutionState> = {
     },
 };
 
-function findAsset(state: typeof SolutionState, path: IAssetFlow): IAsset {
-    const asset = (((state.solutions.find(
+function findAssetItem(
+    state: typeof SolutionState,
+    path: IAssetFlow
+): IAssetItem {
+    // console.log('mutation > selectAssetItem', state);
+    // console.log('mutation > selectAssetItem', path);
+    // debugger;
+    const assetItem = (((state.solutions.find(
         (i: ILoadedSolution) => i.meta.loadId === path.solution.meta.loadId
     ) as ILoadedSolution).projects.find(
         i => i.id === path.project.id
     ) as IProject).references.find(
         i => i.id === path.reference.id
-    ) as IReference).assets.find(i => i.id === path.asset.id) as IAsset;
+    ) as IReference).assetItems.find(
+        i => i.id === path.assetItem.id
+    ) as IAssetItem;
 
-    return asset;
+    return assetItem;
 }
 
 export default mutations;

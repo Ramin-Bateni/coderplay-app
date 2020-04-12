@@ -5,8 +5,15 @@ export const ActionTypes = {
     openSolution: PREFIX + 'openSolution',
     closeSolution: PREFIX + 'closeSolution',
     closeAllSolutions: PREFIX + 'closeAllSolutions',
-    selectAsset: PREFIX + 'selectAsset',
-    deselectAsset: PREFIX + 'deselectAsset',
+
+    selectSolution: PREFIX + 'selectSolution',
+    selectProject: PREFIX + 'selectProject',
+    selectReference: PREFIX + 'selectReference',
+    selectAssetItem: PREFIX + 'selectAssetItem',
+    deselectAssetItem: PREFIX + 'deselectAssetItem',
+    deselectAssetItemFlow: PREFIX + 'deselectAssetItemFlow',
+    deselectProject: PREFIX + 'deselectProject',
+    deselectReference: PREFIX + 'deselectReference',
 };
 
 export const MutationTypes = {
@@ -19,15 +26,19 @@ export const MutationTypes = {
     selectSolution: PREFIX + 'selectSolution',
     selectProject: PREFIX + 'selectProject',
     selectReference: PREFIX + 'selectReference',
-    selectAsset: PREFIX + 'selectAsset',
-    deselectAsset: PREFIX + 'deselectAsset',
+    selectAssetItem: PREFIX + 'selectAssetItem',
+    deselectAssetItem: PREFIX + 'deselectAssetItem',
+    deselectAssetItemByPath: PREFIX + 'deselectAssetItemByPath',
+    deselectProject: PREFIX + 'deselectProject',
+    deselectReference: PREFIX + 'deselectReference',
 };
 
 export const GetterTypes = {
     currentSolution: PREFIX + 'currentSolution',
-    currentAsset: PREFIX + 'currentAsset',
+    currentAssetItem: PREFIX + 'currentAssetItem',
     currentProject: PREFIX + 'currentProject',
-    assetFlow: PREFIX + 'assetFlow',
+    currentReference: PREFIX + 'currentReference',
+    assetItemFlow: PREFIX + 'assetItemFlow',
     isAnyOpenSolution: PREFIX + 'isAnyOpenSolution',
     allSolutions: PREFIX + 'allSolutions',
 };

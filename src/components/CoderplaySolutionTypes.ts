@@ -6,31 +6,87 @@ export interface IAssetFile {
 }
 export interface IAsset {
     id: string;
-    priority: number;
     title: string;
     desc: string;
     createdOn: Date;
     updatedOn: Date;
     file: IAssetFile;
+}
+export interface IAssetItem {
+    id: string;
+    priority: number;
     isSelected: boolean;
+    asset(): IAsset;
 }
 export interface IReference {
     id: string;
     title: string;
     desc: string;
-    filePath: string;
+    filePaths: string[];
     createdOn: Date;
     updatedOn: Date;
     isSelected: boolean;
-    assets: IAsset[];
+    assetItems: IAssetItem[];
 }
 export interface IProject {
     id: string;
     title: string;
     desc: string;
     isSelected: boolean;
+    assets: IAsset[];
     references: IReference[];
+    config: IProjectConfig;
 }
+
+export interface IProjectConfig {
+    videoRecording: IVideoRecordingConfig;
+    audioRecording: IAudioRecordingConfig;
+    recordingMimeType: 'video/webm;codecs=vp9' | 'video/webm;codecs=h264';
+}
+
+export interface IAudioRecordingConfig {
+    audioBitsPerSecond?: number; //  128000;
+}
+
+export interface IVideoRecordingConfig {
+    overlays: Array<IDesktopOverlay | IPhotoOverlay | IWebcamOverlay>;
+    videoBitsPerSecond?: number; // 128000;
+    timeSlice?: number; // 2000;
+    bitsPerSecond?: number; // 128000;
+}
+
+export interface IWebcamOverlay extends ICaptureOverlay {
+    name: 'webcam';
+}
+
+export interface IPhotoOverlay extends ICaptureOverlay {
+    name: 'photo';
+}
+
+export interface IDesktopOverlay extends ICaptureOverlay {
+    name: 'desktop';
+}
+
+export interface ICaptureOverlay {
+    id: string;
+    isShown: boolean;
+    position: ICaptureOverlayPosition;
+    size: ICaptureOverlaySize;
+}
+
+export interface ICaptureOverlaySize {
+    width: number;
+    height: number;
+}
+
+export interface ICaptureOverlayPosition {
+    place: 'fill' | 'tl' | 'tr' | 'bl' | 'br';
+    marginTop: number;
+    marginBottom: number;
+    marginLeft: number;
+    marginRight: number;
+}
+
 export interface ISolution {
     generator: string;
     version: string;
@@ -53,13 +109,13 @@ export interface IResourceFlow {
     solution: ILoadedSolution | undefined;
     project: IProject | undefined;
     reference: IReference | undefined;
-    asset: IAsset | undefined;
+    assetItem: IAssetItem | undefined;
 }
 export interface IAssetFlow {
     solution: ILoadedSolution;
     project: IProject;
     reference: IReference;
-    asset: IAsset;
+    assetItem: IAssetItem;
 }
 
 export interface IReferenceFlow {
@@ -136,7 +192,18 @@ export interface IUiSettings {
     mainNav: IPrimaryDrawer;
 }
 // ================================================================================================================
+export interface ISolutionTreeItem {
+    title: string;
+    path?: string;
+    type: 'project' | 'directory' | 'file' | 'reference' | 'asset';
+    id?: string;
+    children?: ISolutionTree;
+    childrenCount: number | undefined;
+}
 
+export interface ISolutionTree extends Array<ISolutionTreeItem> {}
+
+// ================================================================================================================
 // export const LoadedCpSolution: IConstructor<ILoadedSolution> = undefined;
 // export const CpSolutionMeta: IConstructor<ISolutionMeta> = undefined;
 // export const CpSolution: IConstructor<ISolution> = undefined;

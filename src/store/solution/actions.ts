@@ -1,26 +1,14 @@
 import {
-    appConfigStore,
-    Defaults,
-    IAppConf,
-    ReadyAppConfig,
-} from '@/appConfig';
-import {
     IAsset,
-    IAssetFlow,
+    IAssetFile,
     ILoadedSolution,
-    IPrimaryDrawer,
-    IProject,
     IProjectFlow,
-    IReference,
-    IReferenceFlow,
     IResourceFlow,
-    ISettings,
-    ISolution,
     ISolutionFlow,
     ISolutionMeta,
 } from '@/components/CoderplaySolutionTypes';
 import fs from 'fs';
-import { ActionTree } from 'vuex';
+import { ActionContext, ActionTree } from 'vuex';
 import * as settingsTypes from '../setting/types';
 import { IRootState } from '../types';
 import SolutionState from './state';
@@ -45,6 +33,20 @@ const actions: ActionTree<typeof SolutionState, IRootState> = {
         } finally {
             solution.meta.lastSavedSnapshot = Object.assign({}, solution);
         }
+
+        solution.projects.forEach(proj =>
+            proj.references.forEach(ref => {
+                ref.assetItems.forEach(
+                    assetItem =>
+                        (assetItem.asset = (): IAsset => {
+                            const result = proj.assets.find(
+                                i => i.id === assetItem.id
+                            );
+                            return result || defaultAsset(assetItem.id);
+                        })
+                );
+            })
+        );
 
         context.commit(
             solutionTypes.MutationTypes.openSolution,
@@ -105,11 +107,19 @@ const actions: ActionTree<typeof SolutionState, IRootState> = {
         );
     },
 
-    selectAsset: (context, assetId: string) => {
+    selectAssetItem: (context, assetId: string) => {
         // debugger;
-        const path = context.getters.assetFlow(assetId) as IResourceFlow;
-        if (path.asset) {
-            const p = path as IAssetFlow;
+        const path = context.getters.assetItemFlow(assetId) as IResourceFlow;
+        if (path.assetItem) {
+            // const p = path as IAssetFlow;
+            // first deselect th currentAsset
+            context.dispatch(
+                solutionTypes.ActionTypes.deselectAssetItem,
+                path.assetItem.id,
+                defaultCommitOptions
+            );
+
+            // Now select the Asset Item and its related reference and project
             context.commit(
                 solutionTypes.MutationTypes.selectSolution,
                 path,
@@ -126,40 +136,159 @@ const actions: ActionTree<typeof SolutionState, IRootState> = {
                 defaultCommitOptions
             );
             context.commit(
-                solutionTypes.MutationTypes.selectAsset,
+                solutionTypes.MutationTypes.selectAssetItem,
                 path,
                 defaultCommitOptions
             );
         }
     },
 
-    deselectAsset: (context, assetId: string) => {
+    deselectAssetItem: (context, assetId: string) => {
         // debugger;
-        const path = context.getters.assetFlow(assetId) as IResourceFlow;
-        if (path.asset) {
-            const p = path as IAssetFlow;
-            context.commit(
-                solutionTypes.MutationTypes.deselectAsset,
-                path,
-                defaultCommitOptions
-            );
+        const path = context.getters.assetItemFlow(assetId) as IResourceFlow;
+        if (path.assetItem) {
+            const curAsset = context.getters.currentAssetItem;
+
+            if (curAsset) {
+                context.commit(
+                    solutionTypes.MutationTypes.deselectAssetItem,
+                    curAsset,
+                    defaultCommitOptions
+                );
+            }
         }
     },
 
-    selectReference: (context, more: { refId: string; getters: any }) => {
-        const path = more.getters.refPath(more.refId) as IResourceFlow;
-        if (path.asset) {
+    deselectAssetItemFlow: (context, assetId: string) => {
+        // debugger;
+        const path = context.getters.assetItemFlow(assetId) as IResourceFlow;
+        if (path.assetItem) {
+            const curRef = context.getters.currentReference;
+            const curProj = context.getters.currentProject;
+            const curAssetItem = context.getters.currentAssetItem;
+            console.log('deselectAssetItem', {
+                curProj,
+                curRef,
+                curAsset: curAssetItem,
+            });
+
+            if (curProj) {
+                context.commit(
+                    solutionTypes.MutationTypes.deselectProject,
+                    curProj,
+                    defaultCommitOptions
+                );
+            }
+            if (curRef) {
+                context.commit(
+                    solutionTypes.MutationTypes.deselectReference,
+                    curRef,
+                    defaultCommitOptions
+                );
+            }
+
+            if (curAssetItem) {
+                context.commit(
+                    solutionTypes.MutationTypes.deselectAssetItem,
+                    curAssetItem,
+                    defaultCommitOptions
+                );
+            }
+        }
+    },
+
+    selectReference: (context, refId: string) => {
+        const path = context.getters.referenceFlow(refId) as IResourceFlow;
+        if (path.reference) {
+            const curRef = context.getters.currentReference;
+            const curProj = context.getters.currentProject;
+            const curAssetItem = context.getters.currentAssetItem;
+
+            // console.log('action > selectReference', curRef);
+            // console.log('action > selectReference', curProj);
+
+            // debugger;
+
+            if (curProj) {
+                context.commit(
+                    solutionTypes.MutationTypes.deselectProject,
+                    curProj,
+                    defaultCommitOptions
+                );
+            }
+
+            if (curRef) {
+                context.commit(
+                    solutionTypes.MutationTypes.deselectReference,
+                    curRef,
+                    defaultCommitOptions
+                );
+            }
+
+            if (curAssetItem) {
+                context.commit(
+                    solutionTypes.MutationTypes.deselectAssetItem,
+                    curAssetItem,
+                    defaultCommitOptions
+                );
+            }
+
+            context.commit(
+                solutionTypes.MutationTypes.selectProject,
+                path as IResourceFlow,
+                defaultCommitOptions
+            );
+
             context.commit(
                 solutionTypes.MutationTypes.selectReference,
                 path as IResourceFlow,
                 defaultCommitOptions
             );
+
+            // if (curProj) {
+            //     context.commit(
+            //         solutionTypes.MutationTypes.deselectProject,
+            //         curProj,
+            //         defaultCommitOptions
+            //     );
+            //     context.commit(
+            //         solutionTypes.MutationTypes.selectProject,
+            //         path as IResourceFlow,
+            //         defaultCommitOptions
+            //     );
+            // }
+
+            // if (curRef) {
+            //     context.commit(
+            //         solutionTypes.MutationTypes.deselectReference,
+            //         curRef,
+            //         defaultCommitOptions
+            //     );
+
+            //     context.commit(
+            //         solutionTypes.MutationTypes.selectReference,
+            //         path as IResourceFlow,
+            //         defaultCommitOptions
+            //     );
+            // }
         }
     },
 
-    selectProject: (context, more: { projectId: string; getters: any }) => {
-        const path = more.getters.refPath(more.projectId) as IResourceFlow;
-        if (path.asset) {
+    selectProject: (context, projectId: string) => {
+        const path = context.getters.projectFlow(projectId) as IResourceFlow;
+        if (path.project) {
+            const curProj = context.getters.currentProject;
+
+            if (!curProj) {
+                return;
+            }
+
+            context.commit(
+                solutionTypes.MutationTypes.deselectProject,
+                curProj,
+                defaultCommitOptions
+            );
+
             context.commit(
                 solutionTypes.MutationTypes.selectProject,
                 path as IProjectFlow,
@@ -168,9 +297,9 @@ const actions: ActionTree<typeof SolutionState, IRootState> = {
         }
     },
 
-    selectSolution: (context, more: { solutionId: string; getters: any }) => {
-        const path = more.getters.refPath(more.solutionId) as IResourceFlow;
-        if (path.asset) {
+    selectSolution: (context, solutionId: string) => {
+        const path = context.getters.solutionFlow(solutionId) as IResourceFlow;
+        if (path.solution) {
             context.commit(
                 solutionTypes.MutationTypes.selectSolution,
                 path as ISolutionFlow,
@@ -179,5 +308,22 @@ const actions: ActionTree<typeof SolutionState, IRootState> = {
         }
     },
 };
+
+function defaultAsset(assetId: string) {
+    const def = {
+        id: assetId,
+        title: 'Asset Not Found!',
+        desc: '',
+        createdOn: new Date(),
+        updatedOn: new Date(),
+        file: {
+            type: '',
+            ext: '',
+            textsOfMedia: [],
+            subtitles: [],
+        } as IAssetFile,
+    } as IAsset;
+    return def;
+}
 
 export default actions;

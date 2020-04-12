@@ -99,7 +99,7 @@ export default Vue.extend({
         // debugger
     },
     data: () => ({
-        dialog: false,
+        // dialog: false,
         notifications: false,
         sound: true,
         widgets: false,

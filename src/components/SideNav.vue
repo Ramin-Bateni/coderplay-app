@@ -29,7 +29,8 @@
 		<v-list class="pt-0" dense>
 			<v-divider></v-divider>
 
-			<v-list-tile v-for="item in items" :key="item.title">
+			<v-list-tile v-for="item in items" :key="item.title"
+			 @click.stop="item.action()">
 				<v-list-tile-action>
 					<v-icon>{{ item.icon }}</v-icon>
 				</v-list-tile-action>
@@ -40,9 +41,11 @@
 			</v-list-tile>
 		</v-list>
 
-		<v-btn icon small @click.stop="openSettings()">
+		<CpSolutionTree v-if="anyOpenSolution"/>
+
+		<!-- <v-btn icon small @click.stop="openSettings()">
 			<v-icon>settings</v-icon>
-		</v-btn>
+		</v-btn> -->
 	</v-navigation-drawer>
 </template>
 
@@ -50,9 +53,14 @@
 	import Vue from 'vue';
 	import { mapGetters } from 'vuex';
 	import t from '../store/types';
-	import { IPrimaryDrawer } from './CoderplaySolutionTypes';
+	import { settingsTypes, solutionTypes } from '../store/types';
+	import { ILoadedSolution,IPrimaryDrawer } from './CoderplaySolutionTypes';
+	import CpSolutionTree from './SolutionTree.vue';
 
 	export default Vue.extend({
+		components:{
+			CpSolutionTree
+		},
 		props: {
 			// mainNav: Object
 		},
@@ -62,6 +70,17 @@
 			// }
 		},
 		computed: {
+			currentSolution(): ILoadedSolution | undefined {
+				// debugger;
+				return this.$store.getters[
+					solutionTypes.GetterTypes.currentSolution
+				];
+			},
+			anyOpenSolution(): boolean {
+				return this.$store.getters[
+					solutionTypes.GetterTypes.isAnyOpenSolution
+				];
+			},
 			mainNav: {
 				get(): IPrimaryDrawer {
 					//   debugger;
@@ -87,11 +106,16 @@
 			// return this.$store.state.setting.model.ui.mainNav;
 		},
 		data() {
+		const that:any=this;
 			return {
 				//   mainNav: null,
 				items: [
-					{ title: 'Home', icon: 'dashboard' },
-					{ title: 'About', icon: 'question_answer' },
+					{ title: 'Settings', icon: 'settings',
+					 action(){that.openSettings();} },
+					{ title: 'About', icon: 'question_answer',
+					 action(){
+						 // debugger
+						 that.openAbout();} },
 				],
 			};
 		},
@@ -101,6 +125,9 @@
 		methods: {
 			openSettings() {
 				this.$store.commit(t.settings.MutationTypes.openSettings);
+			},
+			openAbout() {
+				this.$store.commit(t.about.MutationTypes.openAbout);
 			},
 		},
 	});

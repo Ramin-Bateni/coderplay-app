@@ -12,7 +12,10 @@
         //"strictFunctionTypes": false,
         "sourceMap": true,
         "baseUrl": ".",
-        "types": ["webpack-env"],
+
+        // I added vuetify here based on this answer » https://github.com/vuetifyjs/vuetify/issues/5944#issuecomment-480494060
+        "types": ["webpack-env", "vuetify"],
+
         "paths": {
             "@/*": ["src/*"]
         },

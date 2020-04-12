@@ -15,7 +15,7 @@
       </v-btn>
 		</v-toolbar>-->
 
-		<router-view/>
+		<router-view />
 		<!-- <v-content>
       <HelloWorld/>
 		</v-content>-->
@@ -60,7 +60,32 @@
 		},
 	};
 </script>
-
+<style type="text/css">
+	.v-label {
+		font-size: 12px !important;
+	}
+	.v-treeview-node__root {
+		transition: all 0.15s ease;
+	}
+	.v-treeview-node__label {
+		font-size: 0.75rem !important;
+		/* margin-left: 0px !important; */
+	}
+	.v-treeview-node--active {
+		border-radius: 4px;
+	}
+	.v-treeview-node__root {
+		min-height: 20px !important;
+	}
+	.v-treeview-node {
+		margin-left: 15px !important;
+	}
+	.theme--dark.v-treeview--hoverable .v-treeview-node__root:hover,
+	.theme--dark.v-treeview .v-treeview-node--active {
+		background: rgba(2, 2, 2, 0.24);
+		border-radius: 3px;
+	}
+</style>
 
 
 
@@ -142,11 +167,11 @@
 		background-color: #333333 !important;
 	}
 	.theme--dark.v-navigation-drawer {
-		background-color: #333333;
+		background-color: rgba(0, 0, 0, 0.1) !important;
 	}
 	/* .theme--dark aside.v-navigation-drawer{
-																													background-color:transparent;
-																												} */
+																																														background-color:transparent;
+																																													} */
 	.theme--dark.v-navigation-drawer .v-divider {
 		border-color: rgba(255, 255, 255, 0.05) !important;
 	}
@@ -161,24 +186,24 @@
 </style>
 
 <style lang="stylus">
-			// #app {
-			// 	font-family: 'Avenir', Helvetica, Arial, sans-serif;
-			// 	-webkit-font-smoothing: antialiased;
-			// 	-moz-osx-font-smoothing: grayscale;
-			// 	text-align: center;
-			// 	color: #2c3e50;
-			// }
+																				// #app {
+																				// 	font-family: 'Avenir', Helvetica, Arial, sans-serif;
+																				// 	-webkit-font-smoothing: antialiased;
+																				// 	-moz-osx-font-smoothing: grayscale;
+																				// 	text-align: center;
+																				// 	color: #2c3e50;
+																				// }
 
-			// #nav {
-			// 	padding: 30px;
+																				// #nav {
+																				// 	padding: 30px;
 
-			// 	a {
-			// 		font-weight: bold;
-			// 		color: #2c3e50;
+																				// 	a {
+																				// 		font-weight: bold;
+																				// 		color: #2c3e50;
 
-			// 		&.router-link-exact-active {
-			// 			color: #42b983;
-			// 		}
-			// 	}
-			// }
+																				// 		&.router-link-exact-active {
+																				// 			color: #42b983;
+																				// 		}
+																				// 	}
+																				// }
 </style>

@@ -1,3 +1,4 @@
+import moment from 'moment';
 import Vue from 'vue';
 import App from './App.vue';
 import './plugins/vuetify';
@@ -14,3 +15,9 @@ new Vue({
     store,
     render: h => h(App),
 }).$mount('#app');
+
+Vue.filter('formatDate', (value: any) => {
+    if (value) {
+        return moment(String(value)).format('YYYY/MM/DD - hh:mm');
+    }
+});

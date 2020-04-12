@@ -11,7 +11,7 @@ const state = {
             mainNav: {
                 model: false,
                 type: '',
-                clipped: false,
+                clipped: true,
                 floating: false,
                 mini: false,
             } as IPrimaryDrawer,

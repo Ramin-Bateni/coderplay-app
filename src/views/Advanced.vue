@@ -1,12 +1,20 @@
 <template>
 	<div class="cp-container-wrapper">
 		<div class="cp-container">
-			<v-toolbar class="cp-win-toolbar" :clipped-left="mainNav.clipped" app flat absolute>
+			<v-toolbar dense class="cp-win-toolbar" :clipped-left="mainNav.clipped" app flat absolute>
 				<v-toolbar-side-icon @click.stop="toggleMainNav"></v-toolbar-side-icon>
 				<v-toolbar-title>
 					<img class="logotype" src="../assets/CoderPlay_Logotype_01.svg" alt="CoderPlay">
 				</v-toolbar-title>
-				<v-tabs class="text-xs-left ml-5" color="transparent" show-arrows style="width:83%">
+				<v-tabs
+					id="tabsSolutions"
+					v-if="isAnyOpenSolution"
+					class="text-xs-left"
+					color="transparent"
+					show-arrows
+					align-with-title
+					style="width: 70%;"
+				>
 					<v-tabs-slider color="cyan"></v-tabs-slider>
 
 					<!-- <v-menu v-if="allSolution.length>1" bottom class="v-tabs__div" left nudge-bottom="false">
@@ -23,14 +31,34 @@
 					<v-tab v-else>{{ currentSolution.title }}</v-tab>-->
 
 					<v-tab
+						style="font-size:1em;padding: 0"
 						v-for="sol in allSolution"
 						:key="sol.meta.loadId"
 						:href="'#tab-' + sol.meta.loadId"
-					>{{ sol.title }}</v-tab>
+					>
+						<v-tooltip bottom >
+							<template v-slot:activator="{ on }">
+								<span v-on="on">{{ limitText(sol.title,30) }}</span>
+							</template>
+							<span>{{ sol.meta.filePath }}</span>
+						</v-tooltip>
+						
+						<v-btn @click.stop="closeSolution(sol.meta.loadId)"
+						icon small depressed>
+							<v-icon style="font-size: 11px;">close</v-icon>
+						</v-btn>
+					</v-tab>
 				</v-tabs>
 
 				<v-flex class="text-xs-right">
-					<v-btn v-if="isAnyOpenSolution" @click="closeAllSolutions" icon small depressed>
+					<v-btn @click="minimizeWindow()" icon small style="margin:0">
+						<v-icon small>minimize</v-icon>
+					</v-btn>
+					<v-btn @click="maximizeWindow()" icon small style="margin:0">
+						<v-icon small v-if="winIsMaximized">filter_none</v-icon>
+						<v-icon small v-else>tv</v-icon>
+					</v-btn>
+					<v-btn @click="closeWindow()" icon small style="margin:0">
 						<v-icon small>close</v-icon>
 					</v-btn>
 				</v-flex>
@@ -51,7 +79,8 @@
 			<CpSideNav/>
 
 			<v-content class="fill-height">
-				<CpSettings/>
+				<CpSettingsDialog/>
+				<CpAboutDialog/>
 				<CpStart v-if="!isAnyOpenSolution"/>
 
 				<v-tabs-items v-else>
@@ -80,19 +109,18 @@
 
 
 <script lang="ts">
-	import { ipcRenderer } from 'electron';
+	import { ipcRenderer, remote,screen } from 'electron';
 	import Vue from 'vue';
 	import { mapActions, mapGetters } from 'Vuex';
-	import {
-		ILoadedSolution,
-		IPrimaryDrawer,
-	} from '../components/CoderplaySolutionTypes';
-	import CpSettings from '../components/Settings.vue';
+	import CpAboutDialog from '../components/About.vue';
+	import { ILoadedSolution,IPrimaryDrawer} from '../components/CoderplaySolutionTypes';
+	import CpSettingsDialog from '../components/Settings.vue';
 	import CpSideNav from '../components/SideNav.vue';
 	import CpSolution from '../components/Solution.vue';
 	import CpStart from '../components/Start.vue';
 	import CpStatusBar from '../components/StatusBar.vue';
 	import { settingsTypes, solutionTypes } from '../store/types';
+	import { Utility } from '../utility';
 
 	export default Vue.extend({
 		components: {
@@ -100,7 +128,8 @@
 			CpStatusBar,
 			CpStart,
 			CpSolution,
-			CpSettings,
+			CpSettingsDialog,
+			CpAboutDialog
 		},
 		props: {},
 		computed: {
@@ -116,7 +145,6 @@
 				];
 			},
 			allSolution(): ILoadedSolution[] {
-				// debugger;
 				return this.$store.getters[solutionTypes.GetterTypes.allSolutions];
 			},
 			mainNav: {
@@ -135,6 +163,7 @@
 			// solutions: [
 			// 'News', 'Maps', 'Books', 'Flights', 'Apps'
 			// ],
+			winIsMaximized:false,
 			text:
 				'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
 			// solutions:[] as ILoadedSolution[],
@@ -151,6 +180,7 @@
 		created() {
 			// We use setTimeout here to cause an animation (first state of navigation will be hide then it will be shown)
 			setTimeout(this.initTypeOfPrimaryDrawer, 0);
+			
 		},
 		watch: {
 			// solutions(items){
@@ -185,6 +215,32 @@
 			closeAllSolutions() {
 				this.$store.dispatch(solutionTypes.ActionTypes.closeAllSolutions);
 			},
+			closeSolution(solLoadId: string) {
+				this.$store.dispatch(
+					solutionTypes.ActionTypes.closeSolution,
+					solLoadId
+				);
+			},
+			closeWindow() {
+				const window = remote.getCurrentWindow();
+				window.close();
+			},
+			maximizeWindow() {
+				const window = remote.getCurrentWindow();
+				const windowIsMaximized = Utility.windowIsMaximized(window);
+
+				if (!windowIsMaximized) {
+					window.maximize();
+					this.winIsMaximized=true;
+				} else {
+					window.unmaximize();
+					this.winIsMaximized=false;
+				}
+			},
+			minimizeWindow() {
+				const window = remote.getCurrentWindow();
+				window.minimize();
+			},
 			toggleMainNav() {
 				this.$store.commit(settingsTypes.MutationTypes.toggleMainNav);
 			},
@@ -196,6 +252,9 @@
 				return;
 				// this.primaryDrawer.type='permanent'
 			},
+			limitText(text: string, limit: number, tail?: string | '…'): string {
+				return Utility.limitText(text,limit,tail);
+			}
 		},
 	});
 </script>
@@ -282,8 +341,18 @@
 		position: relative;
 		bottom: 0;
 	}
+	.v-tabs__item .v-btn--icon.v-btn--small {
+		width: 18px;
+		height: 18px;
+		margin: 6px 0 6px 6px;
+	}
 	/* .v-tabs__div {
-			zoom: 0.8;
-		} */
+																																																																		zoom: 0.8;
+																																																																	} */
+</style>
+<style>
+	#tabsSolutions .v-tabs__div .v-tabs__item {
+		padding: 0 0 0 7px;
+	}
 </style>
 

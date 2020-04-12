@@ -9,8 +9,6 @@
 // 	mutations,
 // 	types,
 // }
-
-
 import { Module } from 'vuex';
 import { IRootState } from '../types';
 import actions from './actions';

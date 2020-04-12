@@ -1,31 +1,13 @@
 import {
-    appConfigStore,
-    Defaults,
-    IAppConf,
-    ReadyAppConfig,
-} from '@/appConfig';
-import {
-    IAsset,
-    IAssetFlow,
+    IAssetItem,
     ILoadedSolution,
-    IPrimaryDrawer,
     IProject,
-    IProjectFlow,
     IReference,
-    IReferenceFlow,
     IResourceFlow,
-    ISettings,
-    ISolution,
-    ISolutionFlow,
-    ISolutionMeta,
 } from '@/components/CoderplaySolutionTypes';
-import fs from 'fs';
 import { GetterTree } from 'vuex';
 import { IRootState } from '../types';
 import solutionState from './state';
-import * as types from './types';
-// tslint:disable-next-line: no-var-requires
-const uuidV4 = require('uuid/v4');
 
 const getters: GetterTree<typeof solutionState, IRootState> = {
     currentSolution: state => {
@@ -36,7 +18,7 @@ const getters: GetterTree<typeof solutionState, IRootState> = {
                   (solution: ILoadedSolution) => solution.meta.isSelected
               )[0];
     },
-    currentProject(state, get: any) {
+    currentProject(state: any, get: any) {
         //        debugger;
         const obj = get.currentSolution;
         if (!obj) {
@@ -55,8 +37,10 @@ const getters: GetterTree<typeof solutionState, IRootState> = {
         // }
         // return undefined;
     },
-    currentReference(state, get: any) {
-        // debugger;
+    currentReference(state: any, get: any) {
+        // console.log('in currentReference', state);
+        // console.log('in currentReference', get);
+        //debugger;
         const obj = get.currentProject;
         if (obj) {
             return ((obj as unknown) as IProject).references.find(
@@ -65,32 +49,32 @@ const getters: GetterTree<typeof solutionState, IRootState> = {
         }
         return undefined;
     },
-    currentAsset(state, get: any) {
+    currentAssetItem(state: any, get: any) {
         // debugger;
         const obj = get.currentReference;
         if (obj) {
-            return ((obj as unknown) as IReference).assets.find(
+            return ((obj as unknown) as IReference).assetItems.find(
                 i => i.isSelected
             );
         }
         return undefined;
     },
     // We should path the assetId to this getter
-    assetFlow: state => (assetId: string): IResourceFlow => {
+    assetItemFlow: state => (assetId: string): IResourceFlow => {
         const path: IResourceFlow = {
             solution: undefined,
             project: undefined,
             reference: undefined,
-            asset: undefined,
+            assetItem: undefined,
         };
         const result4 = state.solutions.find((solution: ILoadedSolution) => {
             const result3 = solution.projects.find(project => {
                 const result2 = project.references.find(ref => {
-                    const result1 = ref.assets.find(asset => {
-                        return asset.id === assetId;
+                    const result1 = ref.assetItems.find(assetItem => {
+                        return assetItem.id === assetId;
                     });
                     if (result1) {
-                        path.asset = result1 as IAsset;
+                        path.assetItem = result1 as IAssetItem;
                         return true;
                     }
                     return false;
@@ -118,7 +102,7 @@ const getters: GetterTree<typeof solutionState, IRootState> = {
             solution: undefined,
             project: undefined,
             reference: undefined,
-            asset: undefined,
+            assetItem: undefined,
         };
         const result4 = state.solutions.find((solution: ILoadedSolution) => {
             const result3 = solution.projects.find(project => {
@@ -148,7 +132,7 @@ const getters: GetterTree<typeof solutionState, IRootState> = {
             solution: undefined,
             project: undefined,
             reference: undefined,
-            asset: undefined,
+            assetItem: undefined,
         };
         const result4 = state.solutions.find((solution: ILoadedSolution) => {
             const result3 = solution.projects.find(project => {
@@ -171,7 +155,7 @@ const getters: GetterTree<typeof solutionState, IRootState> = {
             solution: undefined,
             project: undefined,
             reference: undefined,
-            asset: undefined,
+            assetItem: undefined,
         };
         const result4 = state.solutions.find((solution: ILoadedSolution) => {
             return solution.meta.loadId === solutionLoadId;

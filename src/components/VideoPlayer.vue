@@ -8,6 +8,7 @@
 					<v-btn>Explore</v-btn>
 				</v-card-actions>-->
 				<v-card-title primary class="pt-2" style="height:52px;">
+					<v-icon class="mr-2" small>movie_filter</v-icon>
 					{{playInfo.title}}
 					<v-spacer></v-spacer>
 					<v-btn small flat icon @click="closeAsset()">
@@ -17,7 +18,7 @@
 				<video
 					v-if="playInfo.assetIsMedia"
 					width="100%"
-					style="min-height:240px;min-width:280px; width:100%;"
+					style="min-height:240px;min-width:280px;width:100%;background: black;"
 					:autoplay="playInfo.player.autoplay"
 					:controls="playInfo.player.controlesVisibility"
 					:src="playInfo.player.url"
@@ -27,11 +28,16 @@
 					<source src="https://www.w3schools.com/tags/movie.ogg" type="video/ogg">-->
 					Your browser does not support the video tag.
 				</video>
-				<v-card-text>{{playInfo.description}}</v-card-text>
+				<v-card-text
+					class="pt-1 pb-0"
+					style="opacity:.5;font-size:.8em;"
+				>{{currentAssetItem.updatedOn | formatDate}}</v-card-text>
+				<v-card-text class="pt-1">{{playInfo.description}}</v-card-text>
 			</v-card>
 		</template>
 		<!-- ------------------------------------------------------------------------------------------ -->
-		<template v-else>
+		<CpVideoRecorder v-else />
+		<!-- <template v-else>
 			<v-card class="cp-light-1">
 				<v-card-title primary class style="height:52px;">{{recordInfo.title}}</v-card-title>
 				<video
@@ -41,14 +47,11 @@
 					:controls="recordInfo.player.controlesVisibility"
 					src="https://www.w3schools.com/tags/movie.mp4"
 				>
-					<!-- <source :src="recordInfo.player.url" :type="recordInfo.player.fileType"> -->
-					<!-- <source src="https://www.w3schools.com/tags/movie.mp4" type="video/mp4"> -->
-					<!-- <source src="https://www.w3schools.com/tags/movie.ogg" type="video/ogg"> -->
 					Your browser does not support the video tag.
 				</video>
 				<v-card-text>{{recordInfo.description}}</v-card-text>
 			</v-card>
-		</template>
+		</template>-->
 	</div>
 </template>
 
@@ -59,14 +62,17 @@
 	import Vue from 'vue';
 	import t from '../store/types';
 	import { Utility } from '../utility';
+
 	import {
-		IAsset,
 		IAssetFlow,
+		IAssetItem,
 		ILoadedSolution,
 		IPlayer,
 		IPlayInfo,
 		IRecordInfo,
 	} from './CoderplaySolutionTypes';
+
+	import CpVideoRecorder from './VideoRecorder.vue';
 
 	export default Vue.extend({
 		data: () => ({
@@ -77,6 +83,9 @@
 				controlesVisibility: true,
 			} as IPlayer,
 		}),
+		components: {
+			CpVideoRecorder,
+		},
 		computed: {
 			recordInfo(): IRecordInfo {
 				const defaults: IRecordInfo = {
@@ -110,45 +119,46 @@
 				};
 
 				if (
-					this.currentAsset === undefined ||
+					this.currentAssetItem === undefined ||
 					!this.isMedia ||
-					this.assetFlow === undefined
+					this.assetItemFlow === undefined
 				) {
 					return defaults;
 				}
 				// --------------------------------------------------------------------------------------
 				// make custom play info from asset
-				const asset: IAsset = this.currentAsset;
-				const assetFlow = (this.assetFlow as unknown) as IAssetFlow;
+				const asset: IAssetItem = this.currentAssetItem;
+				const assetItemFlow = (this.assetItemFlow as unknown) as IAssetFlow;
 
 				const result: IPlayInfo = {
 					...defaults,
 					assetIsSelected: true,
 					assetIsMedia: true,
-					title: Utility.limitText(asset.title, 30),
-					description: asset.desc,
+					title: Utility.limitText(asset.asset().title, 30),
+					description: asset.asset().desc,
 					player: {
 						...defaults.player,
-						fileType: asset.file.type,
-						url: Utility.AssetFlow2Url(assetFlow),
+						fileType: asset.asset().file.type,
+						url: Utility.AssetFlow2Url(assetItemFlow),
 					},
 				};
 				// debugger
 				return result;
 			},
-			currentAsset(): IAsset | undefined {
+			currentAssetItem(): IAssetItem | undefined {
 				// debugger;
 				const asset = this.$store.getters[
-					t.solution.GetterTypes.currentAsset
+					t.solution.GetterTypes.currentAssetItem
 				];
 				// debugger;
 				return asset;
 			},
-			assetFlow(): IAssetFlow | undefined {
-				if (this.currentAsset) {
-					return this.$store.getters[t.solution.GetterTypes.assetFlow](
-						this.currentAsset.id
-					);
+			assetItemFlow(): IAssetFlow | undefined {
+				// debugger;
+				if (this.currentAssetItem) {
+					return this.$store.getters[
+						t.solution.GetterTypes.assetItemFlow
+					](this.currentAssetItem.id);
 				} else {
 					return undefined;
 				}
@@ -156,9 +166,11 @@
 			isMedia(): boolean {
 				// debugger;
 				return (
-					this.currentAsset !== undefined &&
-					(this.currentAsset.file.type.indexOf('video') > -1 ||
-						this.currentAsset.file.type.indexOf('audio') > -1)
+					this.currentAssetItem !== undefined &&
+					(this.currentAssetItem.asset().file.type.indexOf('video') >
+						-1 ||
+						this.currentAssetItem.asset().file.type.indexOf('audio') >
+							-1)
 				);
 			},
 
@@ -176,9 +188,10 @@
 		},
 		methods: {
 			closeAsset(): void {
+				// debugger;
 				this.$store.dispatch(
-					t.solution.ActionTypes.deselectAsset,
-					(this.currentAsset as IAsset).id
+					t.solution.ActionTypes.deselectAssetItem,
+					(this.currentAssetItem as IAssetItem).id
 				);
 			},
 		},

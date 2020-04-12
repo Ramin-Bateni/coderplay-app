@@ -3,6 +3,13 @@
 		<v-flex d-flex style="height:60px;">
 			<v-card class="cp-light-1" style=" padding:0px 5px;">
 				<v-breadcrumbs :items="items">
+					<template v-slot:item="props">
+						<a
+							:href="props.item.href"
+							:class="[props.item.disabled && 'disabled']"
+							style="cursor:default;text-decoration:none;font-size:120%;"
+						>{{ props.item.text }}</a>
+					</template>
 					<template v-slot:divider>
 						<v-icon>chevron_right</v-icon>
 					</template>
@@ -10,59 +17,95 @@
 			</v-card>
 		</v-flex>
 		<v-flex d-flex>
-			<RefAssetsTable :breadcrumbsItems="items" :solution="solution"/>
+			<CpRefAssetsTable />
 		</v-flex>
 	</v-layout>
 </template>
 
 <script lang="ts">
 	import Vue from 'vue';
-	import { mapGetters } from 'vuex';
-	import { ILoadedSolution } from '../components/CoderplaySolutionTypes';
+	// import { mapGetters } from 'vuex';
+	import {
+		ILoadedSolution,
+		IReference,
+	} from '../components/CoderplaySolutionTypes';
 	import t from '../store/types';
-	import RefAssetsTable from './RefAssetsTable.vue';
+	import CpRefAssetsTable from './RefAssetsTable.vue';
 
 	export default Vue.extend({
-		props: {
-			// solution:ISolution
-		},
-		data: () => ({
-			// cpSolution:null,
-			lorem: `Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.`,
-			items: [] as any[],
-			solutionJson: Object,
-		}),
+		// data: () => ({
+		// 	// cpSolution:null,
+		// 	// lorem: `Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.`,
+		// 	items: [] as any[],
+		// 	// solutionJson: Object,
+		// }),
 		components: {
-			//  HelloWorld
-			RefAssetsTable,
+			CpRefAssetsTable,
 		},
 		computed: {
+			currentReference(): IReference {
+				//debugger;
+				const ref = this.$store.getters[
+					t.solution.GetterTypes.currentReference
+				];
+				return ref;
+			},
+			items() {
+				const ref = this.currentReference as IReference | undefined;
+				if (ref) {
+					const pathParts = ref.filePaths[0].split('/');
+					const result = pathParts.map(p => {
+						return {
+							text: p,
+							disabled: false,
+							href: '#', // ref.filePaths[0],
+						};
+					});
+					return result;
+				}
+				return [];
+			},
+			// currentReference(): IReference {
+			// 	debugger;
+			// 	const ref = this.$store.getters[
+			// 		t.solution.GetterTypes.currentReference
+			// 	];
+
+			// 	if (!ref) {
+			// 		return ref;
+			// 	}
+
+			// 	this.items = [
+			// 		{
+			// 			text: ref.filePaths.toString(),
+			// 			disabled: true,
+			// 			href: 'breadcrumbs_dashboard',
+			// 		},
+			// 		{
+			// 			text: ref.title,
+			// 			disabled: true,
+			// 			href: 'breadcrumbs_link_1',
+			// 		},
+			// 	];
+
+			// 	return ref;
+			// },
 			// ...mapGetters(t.namespaces.solution, {
 			// 	solution: t.solution.GetterTypesPure.currentSolution,
 			// }),
 			solution(): ILoadedSolution {
-				// debugger;
+				debugger;
 				// var xxx = t.solution.GetterTypesPure.currentSolution;
 				const sol = this.$store.getters[
 					t.solution.GetterTypes.currentSolution
 				];
-				const ref = sol.projects[0].references[0];
-				this.items = [
-					{
-						text: ref.filePath,
-						disabled: true,
-						href: 'breadcrumbs_dashboard',
-					},
-					{
-						text: ref.title,
-						disabled: true,
-						href: 'breadcrumbs_link_1',
-					},
-				];
-
 				return sol;
 			},
 		},
-		methods: {},
 	});
 </script>
+<style>
+	.v-breadcrumbs li:nth-child(even) {
+		padding: 0;
+	}
+</style>

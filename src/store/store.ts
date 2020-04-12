@@ -1,6 +1,6 @@
-import fs from 'fs';
 import Vue from 'vue';
 import Vuex from 'vuex';
+import AboutModule from './about';
 import AuthModule from './auth';
 import SettingModule from './setting';
 import SolutionModule from './solution';
@@ -17,6 +17,7 @@ export const store = new Vuex.Store<IRootState>({
     // =======================================================================================================
     modules: {
         setting: SettingModule,
+        about: AboutModule,
         auth: AuthModule,
         solution: SolutionModule,
     },

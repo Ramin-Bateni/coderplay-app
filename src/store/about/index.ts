@@ -12,19 +12,17 @@
 
 import { Module } from 'vuex';
 import { IRootState } from '../types';
-import actions from './actions';
-import getters from './getters';
 import mutations from './mutations';
 import state from './state';
 
 const namespaced: boolean = true;
 
-const SolutionModule: Module<typeof state, IRootState> = {
+const AboutModule: Module<typeof state, IRootState> = {
     namespaced,
     state,
-    getters,
-    actions,
+    getters: undefined,
+    actions: undefined,
     mutations,
 };
 
-export default SolutionModule;
+export default AboutModule;

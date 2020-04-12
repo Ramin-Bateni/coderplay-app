@@ -12,6 +12,7 @@ import {
     ISolution,
     ISolutionFlow,
     ISolutionMeta,
+    IAssetItem,
 } from '@/components/CoderplaySolutionTypes';
 import fs from 'fs';
 import Vue from 'vue';
@@ -23,6 +24,7 @@ import {
     ReadyAppConfig,
 } from '../appConfig';
 import t from './types';
+// tslint:disable-next-line: no-var-requires
 const uuidV4 = require('uuid/v4');
 
 Vue.use(Vuex);
@@ -141,16 +143,18 @@ const store = new Vuex.Store({
             state.solutions.solutions.splice(solutionIndex, 1);
         },
 
-        selectAsset: (state, path) => {
-            const asset = (((state.solutions.solutions.find(
+        selectAssetItem: (state, path) => {
+            const assetItem = (((state.solutions.solutions.find(
                 i => i.meta.loadId === path.solution.meta.loadId
             ) as ILoadedSolution).projects.find(
                 i => i.id === path.project.id
             ) as IProject).references.find(
                 i => i.id === path.reference.id
-            ) as IReference).assets.find(i => i.id === path.asset.id) as IAsset;
+            ) as IReference).assetItems.find(
+                i => i.id === path.asset.id
+            ) as IAssetItem;
 
-            asset.isSelected = true;
+            assetItem.isSelected = true;
         },
         selectReference: (state, path) => {
             const ref = ((state.solutions.solutions.find(
@@ -246,29 +250,33 @@ const store = new Vuex.Store({
         switchTheme: (context, isDark) => {
             context.commit(t.settings.MutationTypes.switchTheme, isDark);
         },
-        selectAsset: (context, assetId) => {
-            const path = context.getters.assetFlow(assetId) as IResourceFlow;
-            if (path.asset) {
+        selectAssetItem: (context, assetId) => {
+            const path = context.getters.assetItemFlow(
+                assetId
+            ) as IResourceFlow;
+            if (path.assetItem) {
                 const p = path as IAssetFlow;
                 context.commit(t.solution.MutationTypes.selectSolution, path);
                 context.commit(t.solution.MutationTypes.selectProject, path);
                 context.commit(t.solution.MutationTypes.selectReference, path);
-                context.commit(t.solution.MutationTypes.selectAsset, path);
+                context.commit(t.solution.MutationTypes.selectAssetItem, path);
             }
         },
 
-        selectAsset: (context, { assetId, getters }) => {
-            const path = getters.assetFlow(assetId) as IResourceFlow;
-            if (path.asset) {
+        selectJustAssetItem: (context, assetId) => {
+            const path = context.getters.assetItemFlow(
+                assetId
+            ) as IResourceFlow;
+            if (path.assetItem) {
                 context.commit(
-                    t.solution.MutationTypes.selectAsset,
+                    t.solution.MutationTypes.selectAssetItem,
                     path as IAssetFlow
                 );
             }
         },
         selectReference: (context, { refId, getters }) => {
             const path = getters.refPath(refId) as IResourceFlow;
-            if (path.asset) {
+            if (path.assetItem) {
                 context.commit(
                     t.solution.MutationTypes.selectReference,
                     path as IResourceFlow
@@ -278,7 +286,7 @@ const store = new Vuex.Store({
 
         selectProject: (context, { projectId, getters }) => {
             const path = getters.refPath(projectId) as IResourceFlow;
-            if (path.asset) {
+            if (path.assetItem) {
                 context.commit(
                     t.solution.MutationTypes.selectProject,
                     path as IProjectFlow
@@ -288,7 +296,7 @@ const store = new Vuex.Store({
 
         selectSolution: (context, { solutionId, getters }) => {
             const path = getters.refPath(solutionId) as IResourceFlow;
-            if (path.asset) {
+            if (path.assetItem) {
                 context.commit(
                     t.solution.MutationTypes.selectSolution,
                     path as ISolutionFlow
@@ -329,26 +337,26 @@ const store = new Vuex.Store({
         currentAsset: (state, getters) => {
             const obj = getters.currentReference;
             if (obj) {
-                return (obj as IReference).assets.find(i => i.isSelected);
+                return (obj as IReference).assetItems.find(i => i.isSelected);
             }
             return undefined;
         },
         // We should path the assetId to this getter
-        assetFlow: state => (assetId: string): IResourceFlow => {
+        assetItemFlow: state => (assetId: string): IResourceFlow => {
             const path: IResourceFlow = {
                 solution: undefined,
                 project: undefined,
                 reference: undefined,
-                asset: undefined,
+                assetItem: undefined,
             };
             const result4 = state.solutions.solutions.find(solution => {
                 const result3 = solution.projects.find(project => {
                     const result2 = project.references.find(ref => {
-                        const result1 = ref.assets.find(asset => {
-                            return asset.id === assetId;
+                        const result1 = ref.assetItems.find(assetItem => {
+                            return assetItem.id === assetId;
                         });
                         if (result1) {
-                            path.asset = result1 as IAsset;
+                            path.assetItem = result1 as IAssetItem;
                             return true;
                         }
                         return false;
@@ -376,7 +384,7 @@ const store = new Vuex.Store({
                 solution: undefined,
                 project: undefined,
                 reference: undefined,
-                asset: undefined,
+                assetItem: undefined,
             };
             const result4 = state.solutions.solutions.find(solution => {
                 const result3 = solution.projects.find(project => {
@@ -406,7 +414,7 @@ const store = new Vuex.Store({
                 solution: undefined,
                 project: undefined,
                 reference: undefined,
-                asset: undefined,
+                assetItem: undefined,
             };
             const result4 = state.solutions.solutions.find(solution => {
                 const result3 = solution.projects.find(project => {
@@ -428,7 +436,7 @@ const store = new Vuex.Store({
                 solution: undefined,
                 project: undefined,
                 reference: undefined,
-                asset: undefined,
+                assetItem: undefined,
             };
             const result4 = state.solutions.solutions.find(solution => {
                 return solution.meta.loadId === solutionLoadId;
