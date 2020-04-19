@@ -23,6 +23,8 @@ import {
     ReadyAppConfig,
 } from './appConfig';
 
+import { outputFile } from 'fs-extra';
+
 interface IIpcMainOnEvent {
     sender: { send: (arg0: string, arg1: any) => void };
 }
@@ -216,6 +218,7 @@ app.on('ready', async () => {
         try {
             await installVueDevtools();
         } catch (e) {
+            // tslint:disable-next-line: no-console
             console.error('Vue Devtools failed to install:', e.toString());
         }
     }
@@ -334,3 +337,18 @@ ipcMain.on('save-dialog', (event: IIpcMainOnEvent) => {
         event.sender.send('saved-file', filename);
     });
 });
+// --------------------------------------------------------------------------
+// save dialog
+ipcMain.on(
+    'SAVE_FILE',
+    (event: IIpcMainOnEvent, path2: string, buffer: any) => {
+        debugger;
+        outputFile(path2, buffer, (err: any) => {
+            if (err) {
+                event.sender.send('ERROR', err.message);
+            } else {
+                event.sender.send('SAVED_FILE', path2);
+            }
+        });
+    }
+);
