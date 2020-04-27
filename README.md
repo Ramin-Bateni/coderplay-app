@@ -1,6 +1,6 @@
 # coderplay-app
 
-![Image of Coderplay](https://github.com/Ramin-Bateni/coderplay-app/public/snapshots/screenshot_20200427_104440.jpg)
+![Image of Coderplay](https://raw.githubusercontent.com/Ramin-Bateni/coderplay-app/master/public/snapshots/screenshot_20200427_104440.jpg)
 
 ## Project setup
 
