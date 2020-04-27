@@ -22,6 +22,7 @@ const actions: ActionTree<typeof SolutionState, IRootState> = {
     loadSolutionFromFile: (context, filePath: string) => {
         const rawdata = fs.readFileSync(filePath).toString();
         const solution = JSON.parse(rawdata) as ILoadedSolution;
+        console.log('Solution', solution);
         // filling meta properties
         try {
             solution.meta = {} as ISolutionMeta;

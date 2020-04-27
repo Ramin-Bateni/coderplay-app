@@ -18,6 +18,7 @@ export interface IAssetItem {
     isSelected: boolean;
     asset(): IAsset;
 }
+
 export interface IReference {
     id: string;
     title: string;
