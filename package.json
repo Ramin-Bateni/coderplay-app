@@ -20,7 +20,7 @@
         "fs-extra": "^9.0.0",
         "lodash": "^4.17.14",
         "material-design-icons-iconfont": "^5.0.1",
-        "moment": "^2.24.0",
+        "moment": "^2.29.4",
         "recordrtc": "^5.5.8",
         "vue": "^2.6.10",
         "vue-class-component": "^7.0.2",
